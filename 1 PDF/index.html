@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Classroom Hub - Max Glass Viewer</title>
+
+  <!-- Google Fonts & Lucide Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    :root {
+      /* Dynamic Background Mesh Gradient */
+      --bg-gradient: linear-gradient(135deg, #1e1b4b 0%, #311b92 35%, #1e293b 70%, #0f172a 100%);
+      
+      /* Glassmorphism Token Palette */
+      --glass-bg: rgba(255, 255, 255, 0.08);
+      --glass-bg-hover: rgba(255, 255, 255, 0.14);
+      --glass-border: rgba(255, 255, 255, 0.18);
+      --glass-border-hover: rgba(255, 255, 255, 0.35);
+      --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      --glass-blur: blur(16px);
+      
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-hover: #0284c7;
+      --accent-glow: rgba(56, 189, 248, 0.25);
+      
+      --radius-lg: 20px;
+      --radius-md: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      background-attachment: fixed;
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Ambient Background Orbs for Deep Glass Reflections */
+    .ambient-orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(90px);
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.6;
+    }
+
+    .orb-1 {
+      width: 400px;
+      height: 400px;
+      background: #6366f1;
+      top: -100px;
+      left: -100px;
+    }
+
+    .orb-2 {
+      width: 450px;
+      height: 450px;
+      background: #0ea5e9;
+      bottom: -100px;
+      right: -100px;
+    }
+
+    .orb-3 {
+      width: 300px;
+      height: 300px;
+      background: #ec4899;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    /* Glass Navigation Header */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(15, 23, 42, 0.45);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border-bottom: 1px solid var(--glass-border);
+      padding: 1.2rem 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      font-weight: 700;
+      font-size: 1.3rem;
+      color: #ffffff;
+      letter-spacing: -0.01em;
+    }
+
+    .brand-icon {
+      background: linear-gradient(135deg, #38bdf8, #6366f1);
+      color: #ffffff;
+      width: 42px;
+      height: 42px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px var(--accent-glow);
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1200px;
+      margin: 2.5rem auto;
+      padding: 0 1.5rem;
+      width: 100%;
+    }
+
+    .page-header {
+      margin-bottom: 2.5rem;
+    }
+
+    .page-title {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .page-subtitle {
+      color: var(--text-muted);
+      font-size: 1rem;
+      margin-top: 0.35rem;
+    }
+
+    /* Glass Grid & Cards */
+    .doc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 1.75rem;
+    }
+
+    .doc-card {
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: var(--glass-shadow);
+    }
+
+    .doc-card:hover {
+      background: var(--glass-bg-hover);
+      border-color: var(--glass-border-hover);
+      transform: translateY(-4px);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), 0 0 25px var(--accent-glow);
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+    }
+
+    .card-tag {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 0.3rem 0.7rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .doc-icon-wrapper {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+    }
+
+    .doc-title {
+      font-weight: 700;
+      font-size: 1.2rem;
+      color: #ffffff;
+      line-height: 1.4;
+      margin-bottom: 0.5rem;
+    }
+
+    .doc-description {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      line-height: 1.6;
+      flex-grow: 1;
+    }
+
+    /* Actions Layout */
+    .doc-actions {
+      display: flex;
+      gap: 0.6rem;
+      padding-top: 1.2rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .btn {
+      flex: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.65rem 1rem;
+      border-radius: var(--radius-md);
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+      color: #ffffff;
+      box-shadow: 0 4px 14px var(--accent-glow);
+    }
+
+    .btn-primary:hover {
+      opacity: 0.95;
+      transform: scale(1.02);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.18);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .btn-icon-only {
+      flex: 0 0 auto;
+      width: 40px;
+      padding: 0;
+    }
+
+    /* Enlarged Glass Modal Overlay */
+    .viewer-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(10, 15, 30, 0.82);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      z-index: 100;
+      padding: 0.75rem; /* Reduced overlay margin for maximum canvas */
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .viewer-modal.active {
+      display: flex;
+    }
+
+    /* Maximum coverage card layout (96vw x 96vh by default) */
+    .viewer-card {
+      background: rgba(15, 23, 42, 0.9);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border-hover);
+      width: 96vw;
+      height: 96vh;
+      max-width: 100%;
+      max-height: 100%;
+      border-radius: var(--radius-lg);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75), 0 0 30px rgba(56, 189, 248, 0.15);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* True 100% Fullscreen state when toggled */
+    .viewer-card.fullscreen-mode {
+      width: 100vw;
+      height: 100vh;
+      border-radius: 0;
+      border: none;
+    }
+
+    .viewer-modal.fullscreen-active {
+      padding: 0;
+    }
+
+    .viewer-header {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .viewer-header-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      overflow: hidden;
+    }
+
+    .viewer-title {
+      font-weight: 700;
+      font-size: 1.15rem;
+      color: #ffffff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .viewer-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .viewer-body {
+      flex: 1;
+      background: rgba(15, 23, 42, 0.8);
+      position: relative;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+
+    /* Icon Helper Utility Classes */
+    .icon-sm { width: 16px; height: 16px; }
+    .icon-md { width: 20px; height: 20px; }
+  </style>
+</head>
+<body>
+
+  <!-- Ambient Light Orbs -->
+  <div class="ambient-orb orb-1"></div>
+  <div class="ambient-orb orb-2"></div>
+  <div class="ambient-orb orb-3"></div>
+
+  <!-- Glass Navbar -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">
+        <i data-lucide="book-open" class="icon-md"></i>
+      </div>
+      <span>Classroom Hub</span>
+    </div>
+  </header>
+
+  <!-- Content Workspace -->
+  <div class="container">
+    <div class="page-header">
+      <h1 class="page-title">Course Documents & Materials</h1>
+      <p class="page-subtitle">Access learning materials and programming guides in an expanded frosted glass workspace.</p>
+    </div>
+
+    <!-- Document Cards Container -->
+    <div class="doc-grid" id="document-grid"></div>
+  </div>
+
+  <!-- Enlarged Glass Modal Reader -->
+  <div class="viewer-modal" id="inline-viewer">
+    <div class="viewer-card" id="viewer-card">
+      <div class="viewer-header">
+        <div class="viewer-header-left">
+          <i data-lucide="file-text" class="icon-md" style="color: var(--accent);"></i>
+          <span class="viewer-title" id="current-doc-title">Document Reader</span>
+        </div>
+        
+        <div class="viewer-header-actions">
+          <!-- Toggle Fullscreen Button -->
+          <button class="btn btn-secondary btn-icon-only" onclick="toggleModalFullscreen()" id="fs-toggle-btn" title="Toggle Fullscreen">
+            <i data-lucide="maximize-2" class="icon-sm" id="fs-icon"></i>
+          </button>
+          
+          <!-- Open in standard new tab -->
+          <a class="btn btn-secondary btn-icon-only" id="modal-tab-link" href="#" target="_blank" title="Open in New Tab">
+            <i data-lucide="external-link" class="icon-sm"></i>
+          </a>
+
+          <!-- Close Modal -->
+          <button class="btn btn-secondary btn-icon-only" onclick="closeInlineViewer()" title="Close Reader">
+            <i data-lucide="x" class="icon-sm"></i>
+          </button>
+        </div>
+      </div>
+      <div class="viewer-body">
+        <iframe id="pdf-frame" src=""></iframe>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Classroom Documents Dataset
+    const localDocuments = [
+      {
+        name: "140+ Basic Python Programs",
+        category: "Python Core",
+        description: "Comprehensive exercise workbook covering fundamental algorithms, loops, and core data structures.",
+        filename: "140+ Basic Python Programs.pdf",
+        path: "documents/140+ Basic Python Programs.pdf"
+      },
+      {
+        name: "Blc practals",
+        category: "Blc",
+        description: "blc book .",
+        filename: "blc practical.pdf",
+        path: "documents/blc practical.pdf"
+      },
+      {
+        name: "blc assignment ",
+        category: "Blc",
+        description: "blc book.",
+        filename: "443t363.pdf",
+        path: "documents/443t363.pdf"
+      },
+      {
+        name: "Assignment 2 BC_copy",
+        category: "Bc",
+        description: "blc book.",
+        filename: "Assignment 2 BC_copy.pdf",
+        path: "documents/Assignment 2 BC_copy.pdf"
+      }
+      
+    ];
+
+    const grid = document.getElementById('document-grid');
+    let isFullscreen = false;
+
+    // Render Cards
+    function renderDocuments() {
+      grid.innerHTML = '';
+      
+      localDocuments.forEach(doc => {
+        const card = document.createElement('div');
+        card.className = 'doc-card';
+        card.innerHTML = `
+          <div class="card-top">
+            <span class="card-tag">${doc.category}</span>
+            <div class="doc-icon-wrapper">
+              <i data-lucide="file-text" class="icon-md"></i>
+            </div>
+          </div>
+          <div class="doc-title" title="${doc.name}">${doc.name}</div>
+          <div class="doc-description">${doc.description}</div>
+          
+          <div class="doc-actions">
+            <!-- View in Glass Modal -->
+            <button class="btn btn-primary" onclick="viewInPage('${doc.path}', '${doc.name}')">
+              <i data-lucide="eye" class="icon-sm"></i> View
+            </button>
+
+            <!-- View in New Tab -->
+            <a class="btn btn-secondary" href="${doc.path}" target="_blank">
+              <i data-lucide="external-link" class="icon-sm"></i> Open Tab
+            </a>
+
+            <!-- Download -->
+            <a class="btn btn-secondary btn-icon-only" href="${doc.path}" download="${doc.filename}" title="Download File">
+              <i data-lucide="download" class="icon-sm"></i>
+            </a>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+
+      // Refresh icons after DOM injection
+      lucide.createIcons();
+    }
+
+    // Modal Control Functions
+    function viewInPage(filePath, title) {
+      const viewer = document.getElementById('inline-viewer');
+      const frame = document.getElementById('pdf-frame');
+      const titleElem = document.getElementById('current-doc-title');
+      const tabLink = document.getElementById('modal-tab-link');
+
+      titleElem.textContent = title;
+      frame.src = filePath;
+      tabLink.href = filePath;
+      
+      viewer.classList.add('active');
+    }
+
+    function closeInlineViewer() {
+      const viewer = document.getElementById('inline-viewer');
+      const frame = document.getElementById('pdf-frame');
+      
+      // Reset fullscreen mode if active when closing
+      if (isFullscreen) {
+        toggleModalFullscreen();
+      }
+      
+      frame.src = '';
+      viewer.classList.remove('active');
+    }
+
+    // Toggle Near-Fullscreen / 100% Fullscreen Mode
+    function toggleModalFullscreen() {
+      const viewerModal = document.getElementById('inline-viewer');
+      const viewerCard = document.getElementById('viewer-card');
+      const fsIcon = document.getElementById('fs-icon');
+
+      isFullscreen = !isFullscreen;
+
+      if (isFullscreen) {
+        viewerCard.classList.add('fullscreen-mode');
+        viewerModal.classList.add('fullscreen-active');
+        fsIcon.setAttribute('data-lucide', 'minimize-2');
+      } else {
+        viewerCard.classList.remove('fullscreen-mode');
+        viewerModal.classList.remove('fullscreen-active');
+        fsIcon.setAttribute('data-lucide', 'maximize-2');
+      }
+
+      // Re-render Lucide icons for the updated toggle button state
+      lucide.createIcons();
+    }
+
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        const viewer = document.getElementById('inline-viewer');
+        if (viewer.classList.contains('active')) {
+          closeInlineViewer();
+        }
+      }
+    });
+
+    // Initialize Document Grid
+    document.addEventListener('DOMContentLoaded', () => {
+      renderDocuments();
+    });
+  </script>
+</body>
+</html>
